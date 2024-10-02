@@ -1,7 +1,7 @@
 part of my_fatoorah;
 
 class _WebViewPage extends StatefulWidget {
-  final Uri uri;
+  final dynamic uri;
   final String successUrl;
   final String errorUrl;
   final PreferredSizeWidget Function(BuildContext context)? getAppBar;
@@ -53,7 +53,7 @@ class __WebViewPageState extends State<_WebViewPage>
     }
   }
 
-  void setError(Uri? uri, String message) {
+  void setError(dynamic uri, String message) {
     response = _getResponse(uri, false);
     assert((() {
       print("Error: $uri | Status: ${response.status}");
@@ -154,11 +154,15 @@ class __WebViewPageState extends State<_WebViewPage>
         ),
         Expanded(
           child: InAppWebView(
-            initialUrlRequest: URLRequest(url: WebUri(widget.uri.toString())),
-            initialSettings: InAppWebViewSettings(
-              javaScriptEnabled: true,
-              javaScriptCanOpenWindowsAutomatically: true,
-              applePayAPIEnabled: true,
+            initialUrlRequest: URLRequest(url: widget.uri),
+            initialOptions: InAppWebViewGroupOptions(
+              crossPlatform: InAppWebViewOptions(
+                javaScriptEnabled: true,
+                javaScriptCanOpenWindowsAutomatically: true,
+              ),
+              ios: IOSInAppWebViewOptions(
+                applePayAPIEnabled: true,
+              ),
             ),
             onWebViewCreated: (InAppWebViewController controller) {
               this.controller = controller;
@@ -178,11 +182,13 @@ class __WebViewPageState extends State<_WebViewPage>
                 });
               }
             },
-            onReceivedError: (controller, request, error) {
-              setError(request.url, error.description);
+            onLoadError: (InAppWebViewController controller, Uri? uri,
+                int status, String error) {
+              setError(uri, error);
             },
-            onReceivedHttpError: (controller, request, error) {
-              setError(request.url, error.reasonPhrase ?? '');
+            onLoadHttpError: (InAppWebViewController controller, Uri? uri,
+                int status, String error) {
+              setError(uri, error);
             },
             onLoadStop: (InAppWebViewController controller, Uri? uri) {
               setStop(uri);
